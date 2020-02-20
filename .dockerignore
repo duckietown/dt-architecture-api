@@ -3,10 +3,9 @@
 
 # Allow files and directories
 !assets
-!packages
+!code
 !dependencies-apt.txt
 !dependencies-py3.txt
-!packages-ros.txt
 !launch.sh
 
 # YOUR FILES LISTED BELOW THIS LINE (IMPORTANT: PREPEND !)
