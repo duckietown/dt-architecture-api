@@ -1,5 +1,5 @@
 # parameters
-ARG REPO_NAME="<REPO_NAME_HERE>"
+ARG REPO_NAME="dt-architecture-api"
 
 # ==================================================>
 # ==> Do not change this code
@@ -82,4 +82,4 @@ LABEL org.duckietown.label.base.image="${BASE_IMAGE}:${BASE_TAG}"
 # <==================================================
 
 # maintainer
-LABEL maintainer="<YOUR_FULL_NAME> (<YOUR_EMAIL_ADDRESS>)"
+LABEL maintainer="Andrea F. Daniele (afdaniele@ttic.edu)"
