@@ -50,21 +50,31 @@ def apply_config_proc(modules, log):
             counter = 0
             for m in mods:
                 progress.record("Starting " + m)
-                counter = counter + 1 
                 if "configuration" in mods[m]:
                     try:
                         config = mods[m]["configuration"]
+                        try:
+                            c = docker_client.containers.get(config["name"])
+                            progress.record("Found existing container: " + config["name"] + ":" + c.status)
+                            log[pid] = progress.log
+                            clog = c.remove()
+                        except docker.errors.NotFound as oops:
+                            pass
+                        progress.record("Starting new container " + config["name"])
+                        log[pid] = progress.log
                         container = docker_client.containers.run(detach=True, **config)
                         progress.record("Started " + m)
+                        progress.record("status: " + str(container.status) + " ==>" + str(container.logs()))
+                        log[pid] = progress.log
                     except docker.errors.APIError as error:
                          progress.record("Docker error when starting " + m + " : " + str(error) + "\n" + str(config))
                          log[pid] = progress.log
                 else:
                     progress.record("No configuration for module " + m + " : " + " skipping")
 
+                counter = counter + 1 
                 progress.update_progress((counter/total_number ) * 100)
                 log[pid] = progress.log
-                time.sleep(10)
 
             progress.complete()
             log[pid] = progress.log

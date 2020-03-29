@@ -52,11 +52,10 @@ class DTConfigurationManager:
 
     def get_container_list(self):
         l = self.docker_client.containers.list()
-        i = self.docker_client.images.list()
         val = {}
         val["containers"] = {}
         for c in l:
-            val["containers"][c.id]=c.attrs['Config']['Image']
+            val["containers"][c.id]={ c.attrs['Config']['Image'] : c.status }
 
         return val
 
@@ -140,6 +139,9 @@ class DTConfigurationManager:
                 # update container_name
                 if "container_name" in config:
                     config["name"] = config.pop("container_name")
+
+                if "image" in config:
+                    config["image"] = config["image"].replace('${ARCH-arm32v7}','arm32v7' )
 
                 return module_info
         except FileNotFoundError:

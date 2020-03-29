@@ -14,8 +14,10 @@ docker -H  <device_host_name> run -it --rm --network="host"  -v /data:/data -v /
 ## Current endpoints
 / : status of configuration manager  
 /module/list  :  list of all module names  
-/configuration/list : list of all configurations available  
 /module/info/<module> : module details  
+
+/configuration/list : list of all configurations available  
 /configuration/info/<configuration> :  configuration details  
+/configuration/set/<configuraion> : applies configuration
 /pull/<image_name> : pulls a docker image to the device  
 /monitor/<id> : get status of a job  
