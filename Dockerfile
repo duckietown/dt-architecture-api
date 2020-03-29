@@ -66,4 +66,4 @@ LABEL org.duckietown.label.base.tag="${BASE_TAG}"
 # <==================================================
 
 # maintainer
-LABEL maintainer="<YOUR_FULL_NAME> (<YOUR_EMAIL_ADDRESS>)"
+LABEL maintainer="J Duran (<jduran@ttic.edu>)"
