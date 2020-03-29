@@ -1,43 +1,21 @@
-# Template: template-ros
+# Duckietown Architecture API
 
-This template provides a boilerplate repository
-for developing ROS-based software in Duckietown.
+# Description
+Providing REST endpoints for configuration management of duckietown devices.  Runs on port 8083.  The endpoints all return a JSON response.  These endpoints are currently in-progress and may change as the project evolves.  Using the ente version of duckietown shell.
 
-**NOTE:** If you want to develop software that does not use
-ROS, check out [this template](https://github.com/duckietown/template-basic).
+API data is found in the [dt-architecture-data](https://github.com/duckietown/dt-architecture-data) respository.
 
+## How to build
+dts devel build -f --arch arm32v7 -H <device_host_name> --force
 
-## How to use it
+## How to run
+docker -H  <device_host_name> run -it --rm --network="host"  -v /data:/data -v /var/run/avahi-daemon/socket:/var/run/avahi-daemon/socket -v /var/run/docker.sock:/var/run/docker.sock  duckietown/dt-architecture-api:ente-arm32v7
 
-### 1. Fork this repository
-
-Use the fork button in the top-right corner of the github page to fork this template repository.
-
-
-### 2. Create a new repository
-
-Create a new repository on github.com while
-specifying the newly forked template repository as
-a template for your new repository.
-
-
-### 3. Define dependencies
-
-List the dependencies in the files `dependencies-apt.txt` and
-`dependencies-py.txt` (apt packages and pip packages respectively).
-
-
-### 4. Place your code
-
-Place your ROS packages in the directory `/packages` of
-your new repository.
-
-**NOTE:** Do not use absolute paths in your code,
-the code you place under `/packages` will be copied to
-a different location later.
-
-
-### 5. Setup the launchfile
-
-Change the file `launch.sh` in your repository to
-launch your code.
+## Current endpoints
+/ : status of configuration manager  
+/module/list  :  list of all module names  
+/configuration/list : list of all configurations available  
+/module/info/<module> : module details  
+/configuration/info/<configuration> :  configuration details  
+/pull/<image_name> : pulls a docker image to the device  
+/monitor/<id> : get status of a job  
