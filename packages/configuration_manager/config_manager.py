@@ -4,16 +4,16 @@ import os
 import git
 import glob
 from git import Repo
-from .config_worker import  ConfigWorker 
-from .config_message import ConfigMessage 
+from .config_worker import  ConfigWorker
+from .config_message import ConfigMessage
 
 class DTConfigurationManager:
     def __init__(self):
         self.robot_type = "unknown"
         self.docker_client =  docker.DockerClient(base_url='unix://var/run/docker.sock')
         self.active_config = None
-        self.config_path = None 
-        self.module_path = "/data/assets/dt-architecture-data/modules/" 
+        self.config_path = None
+        self.module_path = "/data/assets/dt-architecture-data/modules/"
         self.current_configuration = "none"
         self.dt_version = "ente"
         self.worker = ConfigWorker()
@@ -31,9 +31,10 @@ class DTConfigurationManager:
             os.makedirs("/data/assets", exist_ok=True)
             git.Git("/data/assets").clone("git://github.com/duckietown/dt-architecture-data.git", branch=self.dt_version)
 
-        if os.path.isdir("/data/assets/dt-architecture-data"): 
+        #Why is this <if>?
+        if os.path.isdir("/data/assets/dt-architecture-data"):
             self.config_path = "/data/assets/dt-architecture-data/configurations/"+self.robot_type
-        
+
 
     def get_configuration_list (self):
         configurations = {}
@@ -43,7 +44,7 @@ class DTConfigurationManager:
             configurations["configurations"] = [os.path.splitext(os.path.basename(f))[0] for f in config_paths]
         else:
             self.status["status"] = "error"
-            self.status["message"].append("could not find configurations (dt-docker-data)")
+            self.status["message"].append("could not find configurations (dt-docker-data)") #why is append used?
             return self.status
         return configurations
 
@@ -80,7 +81,7 @@ class DTConfigurationManager:
         else:
             return self.worker.log.copy()
 
-    def get_status(self):
+    def get_status(self): #default response message - test!
         return self.status.msg
 
     def get_configuration(self, config):
@@ -100,7 +101,7 @@ class DTConfigurationManager:
         except FileNotFoundError:
             error_msg = {}
             error_msg["status"] = "error"
-            error_msg["message"] = "Configuration file not found " 
+            error_msg["message"] = "Configuration file not found "
             error_msg["data"] = path_to_config
             return error_msg
 
@@ -114,6 +115,7 @@ class DTConfigurationManager:
                 config = module_info["configuration"]
 
                 # update ports for pydocker from docker-compose
+                #Is this currently in use?
                 if "ports" in config:
                     ports = config["ports"]
                     newports = {}
@@ -134,7 +136,7 @@ class DTConfigurationManager:
                 # update restart_policy
                 if "restart" in config:
                     config.pop("restart")
-                    restart_policy = {"Name":"always"}
+                    restart_policy = {"Name":"always"} #there is no update here?
 
                 # update container_name
                 if "container_name" in config:
@@ -147,17 +149,17 @@ class DTConfigurationManager:
         except FileNotFoundError:
             error_msg = {}
             error_msg["status"] = "error"
-            error_msg["message"] = "Module file not found" 
+            error_msg["message"] = "Module file not found"
             error_msg["data"] = self.module_path + module_name + ".yaml"
             return error_msg
 
     def pull_image(self, url):
-        return self.worker.pull_image(url) 
+        return self.worker.pull_image(url)
 
     def get_module_list(self):
         modules = {}
         yaml_paths = glob.glob(self.module_path + "/*.yaml")
-        modules["modules"] = [] 
+        modules["modules"] = []
         for f in yaml_paths:
             try:
                 with open(f, 'r') as fd:
@@ -168,11 +170,10 @@ class DTConfigurationManager:
             except FileNotFoundError:
                 error_msg = {}
                 error_msg["status"] = "error"
-                error_msg["message"] = "Module file not found" 
+                error_msg["message"] = "Module file not found"
                 error_msg["data"] = self.module_path + "/" + module_name + ".yaml"
                 return error_msg
         return modules
 
     def clear_job_log(self):
         return self.worker.clear_log()
-
