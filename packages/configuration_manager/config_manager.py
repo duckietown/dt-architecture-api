@@ -146,11 +146,12 @@ class DTConfigurationManager:
                     config["image"] = config["image"].replace('${ARCH-arm32v7}','arm32v7' )
 
                 return module_info
+
         except FileNotFoundError:
             error_msg = {}
             error_msg["status"] = "error"
             error_msg["message"] = "Module file not found"
-            error_msg["data"] = self.module_path + module_name + ".yaml"
+            error_msg["data"] = self.module_path + "/" module_name + ".yaml"
             return error_msg
 
     def pull_image(self, url):
@@ -171,7 +172,7 @@ class DTConfigurationManager:
                 error_msg = {}
                 error_msg["status"] = "error"
                 error_msg["message"] = "Module file not found"
-                error_msg["data"] = self.module_path + "/" + module_name + ".yaml"
+                error_msg["data"] = self.module_path + "/" + module_name + ".yaml" #change module_name to f
                 return error_msg
         return modules
 
