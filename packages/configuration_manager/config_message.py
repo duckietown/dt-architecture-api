@@ -4,7 +4,7 @@ class ConfigMessage:
     def __init__(self, status="ok", message=None, data=None):
         self.msg = {}
         self.msg["status"] = status
-        self.msg["message"] = message
+        self.msg["message"] = message 
         self.msg["data"] = data
 
     def set_status(self, new_status):
