@@ -14,7 +14,7 @@ dt_launchfile_init
 
 # launching app
 #dt_exec echo "This is an empty launch script. Update it to launch your application."
-dt_exec python3 -m "configuration_manager.server_apiclient"
+dt_exec python3 -m "configuration_manager.server"
 
 # ----------------------------------------------------------------------------
 # YOUR CODE ABOVE THIS LINE
