@@ -5,24 +5,24 @@ from multiprocessing import Process, Manager
 from .config_message import JobLog
 
 '''
-    The following functions are spawned by the worker as a sub process.  
+    The following functions are spawned by the worker as a sub process.
     They log is constantly re-assigned since it is DictProxy() used to
     share the task status across processes and it only updates upstream
-    when it is reassigned and not on updates to the nested dictionary.  
+    when it is reassigned and not on updates to the nested dictionary.
 
 '''
 def stop_containers_proc(log):
     pid = os.getpid()
     docker_client =  docker.DockerClient(base_url='unix://var/run/docker.sock')
     progress = JobLog(pid)
-    log[pid] = progress.log 
+    log[pid] = progress.log
     me = "duckietown/dt-architecture-api"
     l = docker_client.containers.list()
 
     for c in l:
         image = c.attrs['Config']['Image']
         if not image.startswith(me):
-            try: 
+            try:
                 progress.record("stopping " + str(image))
                 c.stop()
                 progress.record("stopped " + str(image))
@@ -72,7 +72,7 @@ def apply_config_proc(modules, log):
                 else:
                     progress.record("No configuration for module " + m + " : " + " skipping")
 
-                counter = counter + 1 
+                counter = counter + 1
                 progress.update_progress((counter/total_number ) * 100)
                 log[pid] = progress.log
 
@@ -97,12 +97,13 @@ def pull_image_proc(url, log):
         image_tag = "latest"
     try:
         progress.record("pulling " + image_url + ":" + image_tag)
-        docker_client.images.pull(image_url, tag=image_tag ) 
+        docker_client.images.pull(image_url, tag=image_tag )
         progress.complete()
-        log[pid] = progress.log 
+        log[pid] = progress.log
     except docker.errors.APIError as error:
         progress.error(str(error))
         log[pid] =  progress.log
+
 
 class ConfigWorker:
     def __init__(self):
@@ -135,7 +136,7 @@ class ConfigWorker:
             return "busy"
 
     def status(self, pid):
-        return self.busy
+        return self.busy #?
 
     def apply_custom_configuration(self, module_list):
         return ConfigMessage("ok", "not implemented yet")
@@ -148,4 +149,4 @@ class ConfigWorker:
 
             return response
 
-        return "busy" 
+        return "busy"

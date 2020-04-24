@@ -1,70 +1,83 @@
+#!/usr/bin/env python3
+
+import json
+import docker
+
 from flask import Flask
 from flask import request
-import json
+from dt_archapi_utils import ArchAPIClient
+from dt_town_utils import MultiArchAPIClient
 
-from .config_manager import DTConfigurationManager
-
+#Initialize
 app = Flask(__name__)
+port = 8083 # /architecture
+client = docker.DockerClient(base_url='unix://var/run/docker.sock')
 
-manager = DTConfigurationManager()
+device_manager = ArchAPIClient(client=client)
+fleet_manager = MultiArchAPIClient(client=client, port=str(port))
 
-@app.route("/")
+
+#DEVICE CONFIGURATION
+#Default response
+@app.route("/device/")
 def home():
-    return json.dumps(manager.get_status())
+    return json.dumps(device_manager.default_response())
 
-@app.route("/configuration/list")
+#Passive messaging
+@app.route("/device/configuration/list")
 def configs():
-    return json.dumps(manager.get_configuration_list())
-
-@app.route("/configuration/status")
-def status():
-    return json.dumps(manager.get_configuration_status())
-
-@app.route("/configuration/set/<config_name>", methods=['GET'])
-def load_config(config_name):
-    return json.dumps(manager.apply_configuration(config_name))
-
-@app.route("/configuration/set", methods=['POST'])
-def set_config():
-    return json.dumps(manager.apply_custom_configuration.form.get('config'))
-
-@app.route("/configuration/info/<config_name>", methods=['GET'])
+    return json.dumps(device_manager.configuration_list())
+@app.route("/device/configuration/info/<config_name>", methods=['GET'])
 def get_config(config_name):
-    return json.dumps(manager.get_configuration(config_name))
-
-@app.route("/module/list")
+    return json.dumps(device_manager.configuration_info(config_name))
+@app.route("/device/module/list")
 def modules():
-    return json.dumps(manager.get_module_list())
-
-@app.route("/module/info/<module_name>")
+    return json.dumps(device_manager.module_list())
+@app.route("/device/module/info/<module_name>")
 def get_module_info(module_name):
-    return json.dumps(manager.get_module(module_name))
+    return json.dumps(device_manager.module_info(module_name))
 
-@app.route("/pull/<image_name>")
+#Active messaging
+@app.route("/device/configuration/set/<config_name>", methods=['GET'])
+def load_config(config_name):
+    return json.dumps(device_manager.configuration_set_config(config_name))
+@app.route("/device/pull/<image_name>")
 def pull_image(image_name):
-    return json.dumps(manager.pull_image(image_name))
-
-@app.route("/containers")
-def containers():
-    return json.dumps(manager.get_container_list())
-
-@app.route("/attributes")
-def attributes():
-    return json.dumps(manager.get_attributes())
-
-@app.route("/monitor/<id>", methods=['GET'])
+    return json.dumps(device_manager.pull_image(image_name))
+@app.route("/device/monitor/<id>", methods=['GET'])
 def get_job_status(id):
-    return json.dumps(manager.get_job_status(id))
-
-@app.route("/stop")
-def stop_containers():
-    return json.dumps(manager.stop_containers())
-
-@app.route("/clearlogs")
+    return json.dumps(device_manager.monitor_id(id))
+@app.route("/device/clearlogs")
 def clear_logs():
-    return json.dumps(manager.clear_job_log())
+    return json.dumps(device_manager.clear_job_log())
 
+
+#FLEET CONFIGURATION
+#Default response
+@app.route("/fleet/")
+def home():
+    return json.dumps(fleet_manager.default_response())
+
+#Passive messaging
+@app.route("/fleet/configuration/info/<config_name>", methods=['GET'])
+def get_config(config_name):
+    return json.dumps(fleet_manager.configuration_info(config_name))
+
+#Active messaging
+@app.route("/fleet/configuration/set/<config_name>", methods=['GET'])
+def load_config(config_name):
+    return json.dumps(fleet_manager.configuration_set_config(config_name))
+@app.route("/fleet/pull/<image_name>")
+def pull_image(image_name):
+    return json.dumps(fleet_manager.pull_image(image_name))
+@app.route("/fleet/monitor/<id>", methods=['GET'])
+def get_job_status(id):
+    return json.dumps(fleet_manager.monitor_id(id))
+@app.route("/fleet/clearlogs")
+def clear_logs():
+    return json.dumps(fleet_manager.clear_job_log())
+
+
+#Initialize
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8083)
-
-
+    app.run(host="0.0.0.0", port=port)
