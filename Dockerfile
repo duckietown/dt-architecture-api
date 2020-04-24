@@ -1,23 +1,30 @@
 # parameters
-ARG REPO_NAME="<REPO_NAME_HERE>"
+ARG REPO_NAME="dt-architecture-api"
+ARG MAINTAINER="Andrea F. Daniele (afdaniele@ttic.edu)"
 
 # ==================================================>
-# ==> Do not change this code
+# ==> Do not change the code below this line
 ARG ARCH=arm32v7
-ARG MAJOR=daffy
+ARG MAJOR=ente
 ARG BASE_TAG=${MAJOR}-${ARCH}
-ARG BASE_IMAGE=dt-ros-commons
+ARG BASE_IMAGE=dt-commons
 
 # define base image
 FROM duckietown/${BASE_IMAGE}:${BASE_TAG}
 
-# define repository path
+# check build arguments
 ARG REPO_NAME
-ARG REPO_PATH="${CATKIN_WS_DIR}/src/${REPO_NAME}"
+ARG MAINTAINER
+RUN /utils/build_check "${REPO_NAME}" "${MAINTAINER}"
+
+# define repository path
+ARG REPO_PATH="${SOURCE_DIR}/${REPO_NAME}"
+ARG LAUNCH_PATH="${LAUNCH_DIR}/${REPO_NAME}"
 WORKDIR "${REPO_PATH}"
 
 # create repo directory
 RUN mkdir -p "${REPO_PATH}"
+RUN mkdir -p "${LAUNCH_PATH}"
 
 # install apt dependencies
 COPY ./dependencies-apt.txt "${REPO_PATH}/"
@@ -27,25 +34,22 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 
 # install python dependencies
-COPY ./dependencies-py.txt "${REPO_PATH}/"
-RUN pip install -r ${REPO_PATH}/dependencies-py.txt
+COPY ./dependencies-py3.txt "${REPO_PATH}/"
+RUN pip3 install -r ${REPO_PATH}/dependencies-py3.txt
 
 # copy the source code
-COPY . "${REPO_PATH}/"
+COPY ./packages/. "${REPO_PATH}/"
 
-# build packages
-RUN . /opt/ros/${ROS_DISTRO}/setup.sh && \
-  catkin build \
-    --workspace ${CATKIN_WS_DIR}/
+# copy avahi services
+COPY ./assets/avahi-services/. /avahi-services/
 
-# define launch script
-ENV LAUNCHFILE "${REPO_PATH}/launch.sh"
-
-# define command
-CMD ["bash", "-c", "${LAUNCHFILE}"]
+# install launcher scripts
+COPY ./launch/* "${LAUNCH_PATH}/"
+COPY ./launch/default.sh "${LAUNCH_PATH}/"
+RUN /utils/install_launchers "${LAUNCH_PATH}"
 
 # store module name
-LABEL org.duckietown.label.module.type "${REPO_NAME}"
+LABEL org.duckietown.label.module.type="${REPO_NAME}"
 ENV DT_MODULE_TYPE "${REPO_NAME}"
 
 # store module metadata
@@ -53,12 +57,10 @@ ARG ARCH
 ARG MAJOR
 ARG BASE_TAG
 ARG BASE_IMAGE
-LABEL org.duckietown.label.architecture "${ARCH}"
-LABEL org.duckietown.label.code.location "${REPO_PATH}"
-LABEL org.duckietown.label.code.version.major "${MAJOR}"
-LABEL org.duckietown.label.base.image "${BASE_IMAGE}:${BASE_TAG}"
-# <== Do not change this code
-# <==================================================
-
-# maintainer
-LABEL maintainer="<YOUR_FULL_NAME> (<YOUR_EMAIL_ADDRESS>)"
+LABEL org.duckietown.label.architecture="${ARCH}"
+LABEL org.duckietown.label.code.location="${REPO_PATH}"
+LABEL org.duckietown.label.base.major="${MAJOR}"
+LABEL org.duckietown.label.base.image="${BASE_IMAGE}"
+LABEL org.duckietown.label.base.tag="${BASE_TAG}"
+LABEL org.duckietown.label.maintainer="${MAINTAINER}"
+# <== Do not change the code above this line
