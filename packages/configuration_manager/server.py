@@ -14,7 +14,7 @@ port = 8083 # /architecture
 client = docker.DockerClient(base_url='unix://var/run/docker.sock')
 
 device_manager = ArchAPIClient(client=client)
-fleet_manager = MultiArchAPIClient(client=client, port=str(port))
+#fleet_manager = MultiArchAPIClient(client=client, port=str(port))
 
 
 #DEVICE CONFIGURATION
@@ -51,7 +51,7 @@ def get_job_status(id):
 def clear_logs():
     return json.dumps(device_manager.clear_job_log())
 
-
+"""
 #FLEET CONFIGURATION
 #Default response
 @app.route("/fleet/")
@@ -88,7 +88,7 @@ def scan_for_devices():
 @app.route("/fleet/clearlogs")
 def clear_logs():
     return json.dumps(fleet_manager.clear_job_log())
-
+"""
 
 #Initialize
 if __name__ == "__main__":
