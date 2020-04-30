@@ -6,7 +6,7 @@ import docker
 from flask import Flask
 from flask import request
 from dt_archapi_utils import ArchAPIClient
-from dt_town_utils import MultiArchAPIClient
+from dt_multi_archapi_utils import MultiArchAPIClient
 
 #Initialize
 app = Flask(__name__)
@@ -73,6 +73,18 @@ def pull_image(image_name):
 @app.route("/fleet/monitor/<id>", methods=['GET'])
 def get_job_status(id):
     return json.dumps(fleet_manager.monitor_id(id))
+@app.route("/fleet/list")
+def get_device_list():
+    return json.dumps(fleet_manager.list())
+@app.route("fleet/info/<fleet>")
+def get_fleet_info(fleet):
+    return json.dumps(fleet_manager.info(fleet))
+@app.route("fleet/image/status")
+def get_image_status():
+    return json.dumps(fleet_manager.image_status())
+@app.route("fleet/scan")
+def scan_for_devices():
+    return json.dumps(fleet_manager.scan())
 @app.route("/fleet/clearlogs")
 def clear_logs():
     return json.dumps(fleet_manager.clear_job_log())
