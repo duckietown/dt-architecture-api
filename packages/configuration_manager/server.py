@@ -6,7 +6,7 @@ import docker
 from flask import Flask
 from flask import request
 from dt_archapi_utils import ArchAPIClient
-from dt_multi_archapi_utils import MultiArchAPIClient
+#from dt_multi_archapi_utils import MultiArchAPIClient
 
 #Initialize
 app = Flask(__name__)
