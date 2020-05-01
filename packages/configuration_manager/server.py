@@ -6,7 +6,7 @@ import docker
 from flask import Flask
 from flask import request
 from dt_archapi_utils import ArchAPIClient
-#from dt_multi_archapi_utils import MultiArchAPIClient
+from dt_multi_archapi_utils import MultiArchAPIClient
 
 #Initialize
 app = Flask(__name__)
@@ -14,7 +14,7 @@ port = 8083 # /architecture
 client = docker.DockerClient(base_url='unix://var/run/docker.sock')
 
 device_manager = ArchAPIClient(client=client)
-#fleet_manager = MultiArchAPIClient(client=client, port=str(port))
+fleet_manager = MultiArchAPIClient(client=client, port=str(port))
 
 
 #DEVICE CONFIGURATION
@@ -53,13 +53,13 @@ def clear_logs():
 
 
 
-"""
 #FLEET CONFIGURATION
 #Default response
 @app.route("/fleet/")
 def home():
     return json.dumps(fleet_manager.default_response())
 
+"""
 #Passive messaging
 @app.route("/fleet/configuration/info/<config_name>", methods=['GET'])
 def get_config(config_name):
@@ -91,6 +91,7 @@ def scan_for_devices():
 def clear_logs():
     return json.dumps(fleet_manager.clear_job_log())
 """
+
 
 #Initialize
 if __name__ == "__main__":
