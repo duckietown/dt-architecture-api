@@ -51,6 +51,8 @@ def get_job_status(id):
 def clear_logs():
     return json.dumps(device_manager.clear_job_log())
 
+
+
 """
 #FLEET CONFIGURATION
 #Default response
