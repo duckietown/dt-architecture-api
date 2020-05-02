@@ -55,9 +55,9 @@ def clear_logs():
 
 #FLEET CONFIGURATION
 #Default response
-@app.route("/fleet/<fleet>")
-def fleet_home(fleet):
-    return json.dumps(fleet_manager.default_response(fleet))
+@app.route("/fleet/")
+def fleet_home():
+    return json.dumps(fleet_manager.default_response(fleet=None))
 
 """
 #Passive messaging
@@ -65,9 +65,9 @@ def fleet_home(fleet):
 def fleet_configs(fleet):
     return json.dumps(fleet_manager.configuration_list(fleet))
 """
-@app.route("/fleet/configuration/info/<config_name>/<fleet>", methods=['GET'])
-def fleet_get_config(config_name, fleet):
-    return json.dumps(fleet_manager.configuration_info(config_name, fleet))
+@app.route("/fleet/configuration/info/<config_name>", methods=['GET'])
+def fleet_get_config(config_name):
+    return json.dumps(fleet_manager.configuration_info(config_name, fleet=None))
 """
 #Active messaging
 @app.route("/fleet/configuration/set/<config_name>/<fleet>", methods=['GET'])
