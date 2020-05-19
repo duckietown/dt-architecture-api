@@ -54,31 +54,36 @@ def clear_logs():
 
 
 #FLEET CONFIGURATION
-#Default response
+#Default response #add fleet argument
 @app.route("/fleet/")
 def fleet_home():
     return json.dumps(fleet_manager.default_response(fleet=None))
+@app.route("/fleet/configuration/info/<config_name>", methods=['GET'])
+def fleet_get_config(config_name):
+    return json.dumps(fleet_manager.configuration_info(config_name, fleet=None))
+
+#Active messaging #add fleet argument
+@app.route("/fleet/configuration/set/<config_name>", methods=['GET'])
+def fleet_load_config(config_name):
+    return json.dumps(fleet_manager.configuration_set_config(config_name, fleet=None))
+@app.route("/fleet/monitor/<id>", methods=['GET'])
+def fleet_get_job_status(id):
+    return json.dumps(fleet_manager.monitor_id(id, fleet=None))
+@app.route("/fleet/info", methods=['GET'])
+def fleet_get_info():
+    return json.dumps(fleet_manager.info_fleet(fleet=None))
+
 
 """
 #Passive messaging
 @app.route("/fleet/configuration/list/<fleet>")
 def fleet_configs(fleet):
     return json.dumps(fleet_manager.configuration_list(fleet))
-"""
-@app.route("/fleet/configuration/info/<config_name>", methods=['GET'])
-def fleet_get_config(config_name):
-    return json.dumps(fleet_manager.configuration_info(config_name, fleet=None))
-"""
 #Active messaging
-@app.route("/fleet/configuration/set/<config_name>/<fleet>", methods=['GET'])
-def fleet_load_config(config_name, fleet):
-    return json.dumps(fleet_manager.configuration_set_config(config_name, fleet))
 @app.route("/fleet/pull/<image_name>/<fleet>")
 def fleet_pull_image(image_name, fleet):
     return json.dumps(fleet_manager.pull_image(image_name, fleet))
-@app.route("/fleet/monitor/<id>", methods=['GET'])
-def fleet_get_job_status(id):
-    return json.dumps(fleet_manager.monitor_id(id))
+
 @app.route("/fleet/list/<fleet>")
 def fleet_get_device_list():
     return json.dumps(fleet_manager.list())
