@@ -24,8 +24,11 @@ def home():
     return json.dumps(device_manager.default_response())
 
 #Passive messaging
+@app.route("/device/configuration/status")
+def config_status():
+    return json.dumps(device_manager.configuration_status())
 @app.route("/device/configuration/list")
-def configs():
+def config_list():
     return json.dumps(device_manager.configuration_list())
 @app.route("/device/configuration/info/<config_name>", methods=['GET'])
 def get_config(config_name):
@@ -36,6 +39,10 @@ def modules():
 @app.route("/device/module/info/<module_name>")
 def get_module_info(module_name):
     return json.dumps(device_manager.module_info(module_name))
+@app.route("/device/clearance")
+def clearance_to_go():
+    return json.dumps(device_manager.clearance())
+
 
 #Active messaging
 @app.route("/device/configuration/set/<config_name>", methods=['GET'])
