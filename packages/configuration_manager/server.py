@@ -66,9 +66,9 @@ def fleet_home(fleet):
     return json.dumps(fleet_manager.default_response(fleet))
 
 #Passive messaging using fleet argument
-@app.route("/fleet/configuration/info/<config_name>/<fleet>", methods=['GET'])
-def fleet_get_config(config_name, fleet):
-    return json.dumps(fleet_manager.configuration_info(config_name, fleet))
+@app.route("/fleet/configuration/info/<config_name>", methods=['GET'])
+def fleet_get_config(config_name):
+    return json.dumps(fleet_manager.configuration_info(config_name))
 @app.route("/fleet/info/<fleet>", methods=['GET'])
 def fleet_get_info(fleet):
     return json.dumps(fleet_manager.info_fleet(fleet))
@@ -77,9 +77,9 @@ def fleet_get_info(fleet):
 @app.route("/fleet/configuration/set/<config_name>/<fleet>", methods=['GET'])
 def fleet_load_config(config_name, fleet):
     return json.dumps(fleet_manager.configuration_set_config(config_name, fleet))
-@app.route("/fleet/monitor/<id>/<fleet>", methods=['GET'])
-def fleet_get_job_status(id, fleet):
-    return json.dumps(fleet_manager.monitor_id(id, fleet))
+@app.route("/fleet/monitor/<id>", methods=['GET'])
+def fleet_get_job_status(id):
+    return json.dumps(fleet_manager.monitor_id(id))
 
 ################################################################################
 
