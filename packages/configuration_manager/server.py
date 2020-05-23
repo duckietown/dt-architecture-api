@@ -17,7 +17,7 @@ device_manager = ArchAPIClient(client=client)
 fleet_manager = MultiArchAPIClient(client=client, port=str(port))
 
 
-#DEVICE CONFIGURATION
+#DEVICE CONFIGURATION##########################################################
 #Default response
 @app.route("/device/")
 def home():
@@ -43,7 +43,6 @@ def get_module_info(module_name):
 def clearance_to_go():
     return json.dumps(device_manager.clearance())
 
-
 #Active messaging
 @app.route("/device/configuration/set/<config_name>", methods=['GET'])
 def load_config(config_name):
@@ -60,25 +59,30 @@ def clear_logs():
 
 
 
-#FLEET CONFIGURATION
+#FLEET CONFIGURATION############################################################
 #Default response #add fleet argument
-@app.route("/fleet/")
+@app.route("/fleet/<fleet>")
 def fleet_home():
-    return json.dumps(fleet_manager.default_response(fleet=None))
-@app.route("/fleet/configuration/info/<config_name>", methods=['GET'])
+    return json.dumps(fleet_manager.default_response(fleet))
+
+#Passive messaging using fleet argument
+@app.route("/fleet/configuration/info/<config_name>/<fleet>", methods=['GET'])
 def fleet_get_config(config_name):
-    return json.dumps(fleet_manager.configuration_info(config_name, fleet=None))
+    return json.dumps(fleet_manager.configuration_info(config_name, fleet))
+@app.route("/fleet/info/<fleet>", methods=['GET'])
+def fleet_get_info():
+    return json.dumps(fleet_manager.info_fleet(fleet))
 
 #Active messaging #add fleet argument
-@app.route("/fleet/configuration/set/<config_name>", methods=['GET'])
+@app.route("/fleet/configuration/set/<config_name>/<fleet>", methods=['GET'])
 def fleet_load_config(config_name):
-    return json.dumps(fleet_manager.configuration_set_config(config_name, fleet=None))
-@app.route("/fleet/monitor/<id>", methods=['GET'])
+    return json.dumps(fleet_manager.configuration_set_config(config_name, fleet))
+@app.route("/fleet/monitor/<id>/<fleet>", methods=['GET'])
 def fleet_get_job_status(id):
-    return json.dumps(fleet_manager.monitor_id(id, fleet=None))
-@app.route("/fleet/info", methods=['GET'])
-def fleet_get_info():
-    return json.dumps(fleet_manager.info_fleet(fleet=None))
+    return json.dumps(fleet_manager.monitor_id(id, fleet))
+
+################################################################################
+
 
 
 """
