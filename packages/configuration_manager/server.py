@@ -72,6 +72,9 @@ def fleet_get_config(config_name):
 @app.route("/fleet/info/<fleet>", methods=['GET'])
 def fleet_get_info(fleet):
     return json.dumps(fleet_manager.info_fleet(fleet))
+@app.route("/fleet/configuration/status/<fleet>", methods=['GET'])
+def fleet_get_config_status(fleet):
+    return json.dumps(fleet_manager.configuration_status(fleet))
 
 #Active messaging #add fleet argument
 @app.route("/fleet/configuration/set/<config_name>/<fleet>", methods=['GET'])
