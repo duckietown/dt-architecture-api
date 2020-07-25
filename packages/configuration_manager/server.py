@@ -18,12 +18,10 @@ fleet_manager = MultiArchAPIClient(client=client, port=str(port))
 
 
 #DEVICE CONFIGURATION##########################################################
-#Default response
 @app.route("/device/")
 def home():
     return json.dumps(device_manager.default_response())
 
-#Passive messaging
 @app.route("/device/configuration/status")
 def config_status():
     return json.dumps(device_manager.configuration_status())
@@ -43,7 +41,6 @@ def get_module_info(module_name):
 def clearance_to_go():
     return json.dumps(device_manager.clearance())
 
-#Active messaging
 @app.route("/device/configuration/set/<config_name>", methods=['GET'])
 def load_config(config_name):
     return json.dumps(device_manager.configuration_set_config(config_name))
@@ -58,14 +55,11 @@ def clear_logs():
     return json.dumps(device_manager.clear_job_log())
 
 
-
 #FLEET CONFIGURATION############################################################
-#Default response #add fleet argument
 @app.route("/fleet/<fleet>")
 def fleet_home(fleet):
     return json.dumps(fleet_manager.default_response(fleet))
 
-#Passive messaging using fleet argument
 @app.route("/fleet/configuration/info/<config_name>", methods=['GET'])
 def fleet_get_config(config_name):
     return json.dumps(fleet_manager.configuration_info(config_name))
@@ -76,7 +70,6 @@ def fleet_get_info(fleet):
 def fleet_get_config_status(fleet):
     return json.dumps(fleet_manager.configuration_status(fleet))
 
-#Active messaging #add fleet argument
 @app.route("/fleet/configuration/set/<config_name>/<fleet>", methods=['GET'])
 def fleet_load_config(config_name, fleet):
     return json.dumps(fleet_manager.configuration_set_config(config_name, fleet))
@@ -85,7 +78,6 @@ def fleet_get_job_status(id, fleet):
     return json.dumps(fleet_manager.monitor_id(id, fleet))
 
 ################################################################################
-
 
 
 """
