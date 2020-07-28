@@ -56,6 +56,10 @@ def attributes():
 def get_job_status(id):
     return json.dumps(manager.get_job_status(id))
 
+@app.route("/device/image/info/<image_name>", methods=['GET'])
+def image_info(image_name):
+    return json.dumps(manager.get_image_info(image_name))
+
 @app.route("/stop")
 def stop_containers():
     return json.dumps(manager.stop_containers())
@@ -66,5 +70,3 @@ def clear_logs():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8083)
-
-

@@ -106,6 +106,7 @@ class DTConfigurationManager:
 
     def get_configuration_status(self):
         return json.dumps(self.status)
+    
 
     def get_module(self, module_name):
         try:
@@ -176,3 +177,5 @@ class DTConfigurationManager:
     def clear_job_log(self):
         return self.worker.clear_log()
 
+    def get_image_info(self, image_name):
+        return image_name
