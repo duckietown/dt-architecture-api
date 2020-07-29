@@ -56,7 +56,7 @@ def attributes():
 def get_job_status(id):
     return json.dumps(manager.get_job_status(id))
 
-@app.route("/device/image/info/<image_name>", methods=['GET'])
+@app.route("/device/image/info/<path:image_name>", methods=['GET'])
 def image_info(image_name):
     return json.dumps(manager.get_image_info(image_name))
 

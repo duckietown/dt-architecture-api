@@ -3,6 +3,8 @@ import docker
 import os
 import git
 import glob
+import requests
+import json
 from git import Repo
 from .config_worker import  ConfigWorker 
 from .config_message import ConfigMessage 
@@ -177,5 +179,58 @@ class DTConfigurationManager:
     def clear_job_log(self):
         return self.worker.clear_log()
 
-    def get_image_info(self, image_name):
-        return image_name
+    def get_image_info(self, image):
+        def get_config(image_name, reference):
+            r = json.loads(requests.get('https://auth.docker.io/token?scope=repository:{}:pull&service=registry.docker.io'.format(image_name)).text)
+            token = r["token"]
+            headers = {
+                    'Accept': 'application/vnd.docker.distribution.manifest.list.v2+json',
+                    'Authorization': 'Bearer {}'.format(token)
+            }
+
+            url = 'https://registry-1.docker.io/v2/{}/manifests/{}'.format(image_name, reference)
+            r = json.loads(requests.get(url, headers=headers).text)
+            if int(r["schemaVersion"]) == 2:
+                digest = r["config"]["digest"]
+                headers = {'Authorization': 'Bearer {}'.format(token)}
+                url = 'https://registry-1.docker.io/v2/{}/blobs/{}'.format(image_name, digest)
+                r = json.loads(requests.get(url, headers=headers).text)
+                config = r['container_config']
+                return config
+            else:
+                config = json.loads(r["history"][0]["v1Compatibility"])["config"]
+                return config
+
+        tag, sha = None, None
+
+        if '@' in image:
+            image_name, sha = image.split('@', 1)
+        elif ':' in image:
+            image_name, tag = image.split(':', 1)
+        else:
+            image_name = image
+            tag = 'latest'    
+        if '/' not in image_name:
+            image_name = 'library/{}'.format(image_name)    
+        reference = tag or sha
+        data = {}
+
+        config = get_config(image_name, reference)
+        if "error" in config:
+            error_msg = {}
+            error_msg["status"] = "error"
+            error_msg["message"] = "Module file not found" 
+            error_msg["data"] = config
+            return error_msg 
+        else: 
+            data["image"] = image_name
+            data["sha"] = config["Image"]
+            data["Labels"] = config["Labels"]
+            data["anchestry"] = []
+            message = {
+                "status": "ok",
+                "message": None,
+                "data": data
+            }
+
+        return message
