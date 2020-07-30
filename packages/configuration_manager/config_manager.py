@@ -181,26 +181,44 @@ class DTConfigurationManager:
 
     def get_image_info(self, image):
         def get_config(image_name, reference):
-            r = json.loads(requests.get('https://auth.docker.io/token?scope=repository:{}:pull&service=registry.docker.io'.format(image_name)).text)
-            token = r["token"]
+            token_response = json.loads(requests.get('https://auth.docker.io/token?scope=repository:{}:pull&service=registry.docker.io'.format(image_name)).text)
+            token = token_response["token"]
             headers = {
                     'Accept': 'application/vnd.docker.distribution.manifest.list.v2+json',
                     'Authorization': 'Bearer {}'.format(token)
             }
 
             url = 'https://registry-1.docker.io/v2/{}/manifests/{}'.format(image_name, reference)
-            r = json.loads(requests.get(url, headers=headers).text)
-            if int(r["schemaVersion"]) == 2:
-                digest = r["config"]["digest"]
+            manifest_response = json.loads(requests.get(url, headers=headers).text)
+            if int(manifest_response["schemaVersion"]) == 2:
+                digest = manifest_response["config"]["digest"]
                 headers = {'Authorization': 'Bearer {}'.format(token)}
                 url = 'https://registry-1.docker.io/v2/{}/blobs/{}'.format(image_name, digest)
-                r = json.loads(requests.get(url, headers=headers).text)
-                config = r['container_config']
-                return config
+                config_response = json.loads(requests.get(url, headers=headers).text)
+                config = config_response['container_config']
+                return config, None
             else:
-                config = json.loads(r["history"][0]["v1Compatibility"])["config"]
-                return config
+                config = json.loads(manifest_response["history"][0]["v1Compatibility"])["config"]
+                return config, None
 
+        def get_image_from_labels(labels):
+            image_name, tag = None, None
+            for label_key in labels.keys():
+                if "base.image" in label_key:
+                    if "ubuntu" in labels[label_key]:
+                        image_name = labels[label_key]
+                    else:
+                        image_name = "duckietown/{}".format(labels[label_key])
+                if "base.tag" in label_key:
+                    tag = labels[label_key]
+            if not image_name:
+                return None
+            if ":" in image_name:
+                return image_name
+            return "{}:{}".format(image_name, tag if tag else "latest")
+
+        
+        
         tag, sha = None, None
 
         if '@' in image:
@@ -215,22 +233,30 @@ class DTConfigurationManager:
         reference = tag or sha
         data = {}
 
-        config = get_config(image_name, reference)
-        if "error" in config:
-            error_msg = {}
-            error_msg["status"] = "error"
-            error_msg["message"] = "Module file not found" 
-            error_msg["data"] = config
-            return error_msg 
-        else: 
-            data["image"] = image_name
-            data["sha"] = config["Image"]
-            data["Labels"] = config["Labels"]
-            data["anchestry"] = []
-            message = {
-                "status": "ok",
-                "message": None,
-                "data": data
-            }
+        base_config, error = get_config(image_name, reference)
+        print(base_config)
+        if error:
+            return error
+        labels = base_config["Labels"]
+        data["image"] = image_name
+        data["sha"] = base_config["Image"]
+        data["Labels"] = labels
+        anchestry = []
+        base_image_name = get_image_from_labels(labels)
+        while base_image_name:
+            anchestry.append(base_image_name)
+            base_image_name, base_tag = base_image_name.split(':', 1)
+            base_image_config, error = get_config(base_image_name, base_tag)
+            labels = base_image_config["Labels"]
+            base_image_name = get_image_from_labels(labels)
+            if "ubuntu" in base_image_name:
+                anchestry.append(base_image_name)
+                break
 
+        data["anchestry"] = anchestry
+        message = {
+                    "status": "ok",
+                    "message": None,
+                    "data": data
+            }
         return message
