@@ -181,25 +181,31 @@ class DTConfigurationManager:
 
     def get_image_info(self, image):
         def get_config(image_name, reference):
-            token_response = json.loads(requests.get('https://auth.docker.io/token?scope=repository:{}:pull&service=registry.docker.io'.format(image_name)).text)
-            token = token_response["token"]
-            headers = {
-                    'Accept': 'application/vnd.docker.distribution.manifest.list.v2+json',
-                    'Authorization': 'Bearer {}'.format(token)
-            }
-
-            url = 'https://registry-1.docker.io/v2/{}/manifests/{}'.format(image_name, reference)
-            manifest_response = json.loads(requests.get(url, headers=headers).text)
-            if int(manifest_response["schemaVersion"]) == 2:
-                digest = manifest_response["config"]["digest"]
-                headers = {'Authorization': 'Bearer {}'.format(token)}
-                url = 'https://registry-1.docker.io/v2/{}/blobs/{}'.format(image_name, digest)
-                config_response = json.loads(requests.get(url, headers=headers).text)
-                config = config_response['container_config']
-                return config, None
-            else:
-                config = json.loads(manifest_response["history"][0]["v1Compatibility"])["config"]
-                return config, None
+            try:
+                token_response = json.loads(requests.get('https://auth.docker.io/token?scope=repository:{}:pull&service=registry.docker.io'.format(image_name)).text)
+                if "errors" in token_response:
+                    raise requests.exceptions.RequestException(token_response)
+                token = token_response["token"]
+                headers = {
+                            'Accept': 'application/vnd.docker.distribution.manifest.list.v2+json',
+                            'Authorization': 'Bearer {}'.format(token)
+                }
+                url = 'https://registry-1.docker.io/v2/{}/manifests/{}'.format(image_name, reference)
+                manifest_response = json.loads(requests.get(url, headers=headers).text)
+                if "errors" in manifest_response:
+                    raise requests.exceptions.RequestException(manifest_response)
+                if int(manifest_response["schemaVersion"]) == 2:
+                    digest = manifest_response["config"]["digest"]
+                    headers = {'Authorization': 'Bearer {}'.format(token)}
+                    url = 'https://registry-1.docker.io/v2/{}/blobs/{}'.format(image_name, digest)
+                    config_response = json.loads(requests.get(url, headers=headers).text)
+                    config = config_response['container_config']
+                    return config
+                else:
+                    config = json.loads(manifest_response["history"][0]["v1Compatibility"])["config"]
+                    return config    
+            except json.decoder.JSONDecodeError as e:
+                raise requests.exceptions.RequestException("Error in request {} with error: {}".format(url, str(e)))
 
         def get_image_from_labels(labels):
             image_name, tag = None, None
@@ -217,8 +223,6 @@ class DTConfigurationManager:
                 return image_name
             return "{}:{}".format(image_name, tag if tag else "latest")
 
-        
-        
         tag, sha = None, None
 
         if '@' in image:
@@ -232,31 +236,37 @@ class DTConfigurationManager:
             image_name = 'library/{}'.format(image_name)    
         reference = tag or sha
         data = {}
+        
+        try:
+            base_config = get_config(image_name, reference)
 
-        base_config, error = get_config(image_name, reference)
-        print(base_config)
-        if error:
-            return error
-        labels = base_config["Labels"]
-        data["image"] = image_name
-        data["sha"] = base_config["Image"]
-        data["Labels"] = labels
-        anchestry = []
-        base_image_name = get_image_from_labels(labels)
-        while base_image_name:
-            anchestry.append(base_image_name)
-            base_image_name, base_tag = base_image_name.split(':', 1)
-            base_image_config, error = get_config(base_image_name, base_tag)
-            labels = base_image_config["Labels"]
+            labels = base_config["Labels"]
+            data["image"] = image_name
+            data["sha"] = base_config["Image"]
+            data["Labels"] = labels
+            anchestry = []
             base_image_name = get_image_from_labels(labels)
-            if "ubuntu" in base_image_name:
+            while base_image_name:
+                if "ubuntu" in base_image_name:
+                    anchestry.append(base_image_name)
+                    break
                 anchestry.append(base_image_name)
-                break
+                base_image_name, base_tag = base_image_name.split(':', 1)
+                base_image_config = get_config(base_image_name, base_tag)
+                labels = base_image_config["Labels"]
+                base_image_name = get_image_from_labels(labels)
+                
 
-        data["anchestry"] = anchestry
-        message = {
-                    "status": "ok",
-                    "message": None,
-                    "data": data
-            }
-        return message
+            data["anchestry"] = anchestry
+            message = {
+                        "status": "ok",
+                        "message": None,
+                        "data": data
+                }
+            return message
+        except requests.exceptions.RequestException as e:
+            error_msg = {}
+            error_msg["status"] = "error"
+            error_msg["message"] = str(e) 
+            error_msg["data"] = None
+            return error_msg
