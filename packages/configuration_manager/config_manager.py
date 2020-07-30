@@ -187,7 +187,7 @@ class DTConfigurationManager:
                     raise requests.exceptions.RequestException(token_response)
                 token = token_response["token"]
                 headers = {
-                            'Accept': 'application/vnd.docker.distribution.manifest.list.v2+json',
+                            'Accept': 'application/vnd.docker.distribution.manifest.v2+json',
                             'Authorization': 'Bearer {}'.format(token)
                 }
                 url = 'https://registry-1.docker.io/v2/{}/manifests/{}'.format(image_name, reference)
