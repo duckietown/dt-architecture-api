@@ -205,7 +205,7 @@ class DTConfigurationManager:
                     config = json.loads(manifest_response["history"][0]["v1Compatibility"])["config"]
                     return config    
             except json.decoder.JSONDecodeError as e:
-                raise requests.exceptions.RequestException("Error in request {} with error: {}".format(url, str(e)))
+                raise requests.exceptions.RequestException("Error request {}, {}, image is {}".format(url, str(e), image_name))
 
         def get_image_from_labels(labels):
             image_name, tag = None, None
