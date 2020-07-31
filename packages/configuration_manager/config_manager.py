@@ -35,7 +35,6 @@ class DTConfigurationManager:
 
         if os.path.isdir("/data/assets/dt-architecture-data"): 
             self.config_path = "/data/assets/dt-architecture-data/configurations/"+self.robot_type
-        
 
     def get_configuration_list (self):
         configurations = {}
@@ -107,8 +106,7 @@ class DTConfigurationManager:
             return error_msg
 
     def get_configuration_status(self):
-        return json.dumps(self.status)
-    
+        return json.dumps(self.status) 
 
     def get_module(self, module_name):
         try:
@@ -180,7 +178,24 @@ class DTConfigurationManager:
         return self.worker.clear_log()
 
     def get_image_info(self, image):
+        '''get public info with anchestry from Docker Hub
+
+        Parameters:
+        image(str): name for docker image
+
+        Returns:
+        dict: public info about image
+        '''
         def get_config(image_name, reference):
+            '''public info about image
+
+            Parameters:
+            image_name(str): name of image without tag or sha
+            reference(str): tag or sha256
+
+            Returns:
+            dict: json with public info about image from Docker Hub 
+            '''
             try:
                 token_response = json.loads(requests.get('https://auth.docker.io/token?scope=repository:{}:pull&service=registry.docker.io'.format(image_name)).text)
                 if "errors" in token_response:
@@ -191,32 +206,46 @@ class DTConfigurationManager:
                             'Authorization': 'Bearer {}'.format(token)
                 }
                 url = 'https://registry-1.docker.io/v2/{}/manifests/{}'.format(image_name, reference)
-                manifest_response = json.loads(requests.get(url, headers=headers).text)
-                if "errors" in manifest_response:
-                    raise requests.exceptions.RequestException(manifest_response)
-                if int(manifest_response["schemaVersion"]) == 2:
-                    digest = manifest_response["config"]["digest"]
+                manifest_response = requests.get(url, headers=headers)
+                manifest_json = json.loads(manifest_response.text)
+                if "errors" in manifest_json:
+                    raise requests.exceptions.RequestException(manifest_json)
+                digest_image = manifest_response.headers["Docker-Content-Digest"]
+                if int(manifest_json["schemaVersion"]) == 2:
+                    digest = manifest_json["config"]["digest"]
                     headers = {'Authorization': 'Bearer {}'.format(token)}
                     url = 'https://registry-1.docker.io/v2/{}/blobs/{}'.format(image_name, digest)
                     config_response = json.loads(requests.get(url, headers=headers).text)
                     config = config_response['container_config']
+                    config["digest"] = digest_image
                     return config
                 else:
-                    config = json.loads(manifest_response["history"][0]["v1Compatibility"])["config"]
+                    config = json.loads(manifest_json["history"][0]["v1Compatibility"])["config"]
+                    config["digest"] = digest_image
                     return config    
             except json.decoder.JSONDecodeError as e:
-                raise requests.exceptions.RequestException("Error request {}, {}, image is {}".format(url, str(e), image_name))
+                raise requests.exceptions.RequestException("Error. request: {}; image is: {}; error_message: {}".format(url, str(e), image_name))
 
         def get_image_from_labels(labels):
+            '''get image name from array of labels
+
+            Parameters:
+            labels(list): array of labels
+            
+            Returns:
+            str: image name
+            '''
             image_name, tag = None, None
-            for label_key in labels.keys():
-                if "base.image" in label_key:
-                    if "ubuntu" in labels[label_key]:
-                        image_name = labels[label_key]
-                    else:
-                        image_name = "duckietown/{}".format(labels[label_key])
-                if "base.tag" in label_key:
-                    tag = labels[label_key]
+            labels_keys = labels.keys()
+            image_name_key = next(filter(lambda x: "base.image" in x, labels_keys), None)
+            tag_key = next(filter(lambda x: "base.tag" in x, labels_keys), None)
+            if image_name_key:
+                if "ubuntu" in labels[image_name_key]:
+                    image_name = labels[image_name_key]
+                else:
+                    image_name = "duckietown/{}".format(labels[image_name_key])
+            if tag_key:
+                tag = labels[tag_key]
             if not image_name:
                 return None
             if ":" in image_name:
@@ -242,7 +271,7 @@ class DTConfigurationManager:
 
             labels = base_config["Labels"]
             data["image"] = image_name
-            data["sha"] = base_config["Image"]
+            data["sha"] = base_config["digest"]
             data["Labels"] = labels
             anchestry = []
             base_image_name = get_image_from_labels(labels)
