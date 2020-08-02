@@ -53,6 +53,9 @@ def get_job_status(id):
 @app.route("/device/clearlogs")
 def clear_logs():
     return json.dumps(device_manager.clear_job_log())
+@app.route("/device/image/info/<path:image_name>", methods=['GET'])
+def image_info(image_name):
+    return json.dumps(device_manager.get_image_info(image_name))
 
 
 #FLEET CONFIGURATION############################################################
