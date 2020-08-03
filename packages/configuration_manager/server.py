@@ -40,6 +40,7 @@ def get_module_info(module_name):
 @app.route("/device/clearance")
 def clearance_to_go():
     return json.dumps(device_manager.clearance())
+
 @app.route("/device/configuration/set/<config_name>", methods=['GET'])
 def load_config(config_name):
     return json.dumps(device_manager.configuration_set_config(config_name))
@@ -48,15 +49,14 @@ def pull_image(image_name):
     return json.dumps(device_manager.pull_image(image_name))
 @app.route("/device/monitor/<id>", methods=['GET'])
 def get_job_status(id):
-    return json.dumps(manager.get_job_status(id))
+    return json.dumps(device_manager.monitor_id(id))
 @app.route("/device/image/info/<path:image_name>", methods=['GET'])
 def image_info(image_name):
     return json.dumps(device_manager.get_image_info(image_name))
-@app.route("/clearlogs")
-    return json.dumps(device_manager.monitor_id(id))
 @app.route("/device/clearlogs")
 def clear_logs():
     return json.dumps(device_manager.clear_job_log())
+
 
 #FLEET CONFIGURATION############################################################
 @app.route("/fleet/<fleet>")
