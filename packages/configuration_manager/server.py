@@ -50,6 +50,9 @@ def pull_image(image_name):
 @app.route("/device/monitor/<id>", methods=['GET'])
 def get_job_status(id):
     return json.dumps(device_manager.monitor_id(id))
+@app.route("/device/image/info/<path:image_name>", methods=['GET'])
+def image_info(image_name):
+    return json.dumps(device_manager.get_image_info(image_name))
 @app.route("/device/clearlogs")
 def clear_logs():
     return json.dumps(device_manager.clear_job_log())
