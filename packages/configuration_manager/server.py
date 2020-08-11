@@ -80,6 +80,10 @@ def fleet_load_config(config_name, fleet):
 def fleet_get_job_status(id, fleet):
     return json.dumps(fleet_manager.monitor_id(id, fleet))
 
+@app.route("/fleet/scan", methods=['GET'])
+def fleet_scan():
+    return json.dumps(fleet_manager.fleet_scan())
+
 ################################################################################
 
 
