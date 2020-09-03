@@ -10,7 +10,7 @@ ARG BASE_TAG=${MAJOR}-${ARCH}
 ARG BASE_IMAGE=dt-commons
 
 # define base image
-FROM duckietown/${BASE_IMAGE}:${BASE_TAG}
+FROM duckietown/${BASE_IMAGE}:${BASE_TAG} as BASE
 
 # check build arguments
 ARG REPO_NAME
