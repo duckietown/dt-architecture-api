@@ -10,7 +10,8 @@ ARG BASE_TAG=${MAJOR}-${ARCH}
 ARG BASE_IMAGE=dt-commons
 
 # define base image
-FROM duckietown/${BASE_IMAGE}:${BASE_TAG}
+ARG DOCKER_REGISTRY=docker.io
+FROM ${DOCKER_REGISTRY}/duckietown/${BASE_IMAGE}:${BASE_TAG}
 
 # check build arguments
 ARG REPO_NAME
